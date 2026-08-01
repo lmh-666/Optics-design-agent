@@ -162,12 +162,3 @@ pytest -q
 - 大模型和完整数据集是否公开，需要根据数据来源和授权情况确认；公开仓库可保留样例数据。
 - 代码中部分中文注释存在历史编码问题，建议在正式开源前统一整理为 UTF-8。
 
-## 面试讲法
-
-推荐表述为：
-
-> 我没有简单套 LangGraph，而是针对光学镜头设计任务实现了一个轻量级 workflow agent：用 session state 维护多轮约束，用 planner 将用户意图映射为 parse、retrieve、rerank、raytrace、explain 等工具链，再结合领域规则和硬约束保证推荐结果可解释、可控。这个设计更偏工程可控性和领域效果，如果进入更复杂的多工具协作场景，可以迁移到 LangGraph 做状态图编排。
-
-现在也可以补充：
-
-> 后续我将同一套工具链迁移到了 LangGraph：每个阶段被建模为 graph node，并用 conditional edge 做意图路由。这样既保留了原有领域规则的可控性，也能展示标准 Agent workflow 框架下的状态流转、节点追踪和扩展能力。
