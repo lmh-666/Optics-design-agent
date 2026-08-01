@@ -1,0 +1,13 @@
+fastapi>=0.111.0
+uvicorn[standard]>=0.30.0
+pydantic>=2.7.0
+torch>=2.3.0
+transformers>=4.42.0
+accelerate>=0.31.0
+pandas>=2.2.0
+numpy>=1.26.0
+matplotlib>=3.8.0
+openpyxl>=3.1.0
+requests>=2.32.0
+pytest>=8.2.0
+langgraph>=0.6.11

@@ -1,0 +1,57 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Local/runtime outputs
+static/optiland_layouts/
+data/raytrace_cache/*.tmp
+*.log
+*.bak
+*.bak_*
+
+# Private datasets and generated evaluation exports
+private_data/
+*.csv
+*.xlsx
+*.xls
+data/**
+!data/
+!data/README.md
+!data/dat/
+!data/dat/.gitkeep
+!data/codev_blocks/
+!data/codev_blocks/.gitkeep
+!data/eval/
+!data/eval/.gitkeep
+!data/raytrace_cache/
+!data/raytrace_cache/.gitkeep
+
+# Local secrets/config
+.env
+
+# Large local model files
+models/
+checkpoints/
+*.safetensors
+*.bin
+*.pt
+*.pth
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

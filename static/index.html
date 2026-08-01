@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>OpticsGPT Lens Agent</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 24px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+      background: #f3f7fb;
+      color: #0f172a;
+    }
+
+    h1 {
+      margin: 0 0 8px 0;
+      font-size: 30px;
+    }
+
+    .subtitle {
+      color: #64748b;
+      margin-bottom: 20px;
+    }
+
+    .panel, .card {
+      background: white;
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: block;
+      font-weight: 700;
+      margin: 12px 0 6px;
+    }
+
+    input, textarea {
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 15px;
+      outline: none;
+    }
+
+    textarea {
+      min-height: 120px;
+      line-height: 1.6;
+      resize: vertical;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 120px;
+      gap: 14px;
+    }
+
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    button {
+      border: none;
+      background: #2563eb;
+      color: white;
+      padding: 11px 16px;
+      border-radius: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    button.secondary {
+      background: #e0ecff;
+      color: #1d4ed8;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 390px 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid #eef2f7;
+      font-size: 14px;
+    }
+
+    .info-row span:first-child {
+      color: #64748b;
+    }
+
+    .info-row span:last-child {
+      font-weight: 700;
+      text-align: right;
+      word-break: break-all;
+    }
+
+    .tools {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .tool {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+      border-radius: 999px;
+      padding: 5px 9px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .layout-box {
+      min-height: 380px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .layout-box img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .empty {
+      color: #94a3b8;
+      font-size: 14px;
+    }
+
+    .spec-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(120px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .spec {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 12px;
+    }
+
+    .spec-label {
+      font-size: 12px;
+      color: #64748b;
+      margin-bottom: 6px;
+    }
+
+    .spec-value {
+      font-size: 18px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .recommend {
+      margin-top: 14px;
+      background: #eef2ff;
+      color: #312e81;
+      border-radius: 14px;
+      padding: 14px;
+      line-height: 1.7;
+      white-space: pre-wrap;
+      font-size: 14px;
+    }
+
+    .risk {
+      margin-top: 14px;
+      background: #fff7ed;
+      color: #9a3412;
+      border: 1px solid #fed7aa;
+      border-radius: 14px;
+      padding: 14px;
+      line-height: 1.7;
+      font-size: 14px;
+    }
+
+    .candidate {
+      border: 1px solid #e2e8f0;
+      background: #f8fafc;
+      border-radius: 14px;
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+
+    .candidate-title {
+      font-weight: 800;
+      color: #1d4ed8;
+      margin-bottom: 6px;
+    }
+
+    .candidate-meta {
+      color: #475569;
+      font-size: 13px;
+    }
+
+    .error {
+      margin-top: 12px;
+      background: #fee2e2;
+      color: #991b1b;
+      border-radius: 12px;
+      padding: 12px;
+      display: none;
+    }
+
+    .small {
+      font-size: 12px;
+      color: #64748b;
+      word-break: break-all;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>OpticsGPT 镜头设计 Agent</h1>
+  <div class="subtitle">检索推荐镜头，并展示 Optiland 生成的镜头结构图</div>
+
+  <div class="panel">
+    <div class="row">
+      <div>
+        <label>Session ID</label>
+        <input id="sessionId" value="demo_layout_001" />
+      </div>
+
+      <div>
+        <label>Top K</label>
+        <input id="topK" type="number" value="9" min="1" max="20" />
+      </div>
+    </div>
+
+    <label>设计需求 / 多轮指令</label>
+    <textarea id="userText">设计一个车载广角镜头，F数2.0，视场角大于120度，孔径4mm，总长尽量短，畸变尽量低</textarea>
+
+    <div class="buttons">
+      <button id="sendBtn" onclick="sendAgent()">发送给 Agent</button>
+      <button class="secondary" onclick="redrawLayout()">重新画当前最佳结构图</button>
+      <button class="secondary" onclick="optimizeFov()">视场角再优化</button>
+      <button class="secondary" onclick="makeShorter()">总长再短一点</button>
+      <button class="secondary" onclick="newSession()">新建会话</button>
+    </div>
+
+    <div id="error" class="error"></div>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="card">
+        <h2>Agent 状态</h2>
+        <div class="info-row"><span>Intent</span><span id="intent">—</span></div>
+        <div class="info-row"><span>Session</span><span id="sessionShow">—</span></div>
+        <div class="info-row"><span>Iteration</span><span id="iteration">—</span></div>
+        <div class="info-row"><span>Feasibility</span><span id="feasibility">—</span></div>
+        <div class="info-row"><span>Base Lens</span><span id="baseLens">—</span></div>
+
+        <h3>Called Tools</h3>
+        <div id="tools" class="tools">
+          <span class="empty">暂无工具调用</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>解析需求</h2>
+        <div class="info-row"><span>Scene</span><span id="scene">—</span></div>
+        <div class="info-row"><span>F Number</span><span id="fnum">—</span></div>
+        <div class="info-row"><span>FOV</span><span id="fov">—</span></div>
+        <div class="info-row"><span>Aperture</span><span id="aperture">—</span></div>
+        <div class="info-row"><span>Derived Focal</span><span id="derivedFocal">—</span></div>
+        <div class="info-row"><span>Scale Status</span><span id="scaleStatus">—</span></div>
+      </div>
+
+      <div class="card">
+        <h2>推荐说明</h2>
+        <div id="answer" class="recommend">暂无结果</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h2>推荐镜头结构图</h2>
+        <div class="layout-box" id="layoutBox">
+          <div class="empty">暂无结构图</div>
+        </div>
+        <div id="imageUrl" class="small"></div>
+      </div>
+
+      <div class="card">
+        <h2>Top1 推荐镜头</h2>
+        <div class="info-row"><span>Lens ID</span><span id="lensId">—</span></div>
+        <div class="info-row"><span>Score</span><span id="score">—</span></div>
+
+        <div class="spec-grid">
+          <div class="spec"><div class="spec-label">F Number</div><div class="spec-value" id="topFnum">—</div></div>
+          <div class="spec"><div class="spec-label">Full FOV</div><div class="spec-value" id="topFov">—</div></div>
+          <div class="spec"><div class="spec-label">TTL Real</div><div class="spec-value" id="topTtl">—</div></div>
+          <div class="spec"><div class="spec-label">Ray Spread</div><div class="spec-value" id="topRay">—</div></div>
+        </div>
+
+        <div class="risk">
+          <b>约束风险：</b>
+          <div id="risks">暂无明显风险</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>候选镜头列表</h2>
+        <div id="candidates"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = window.location.origin;
+
+    function fmt(v, digits = 3) {
+      if (v === null || v === undefined || v === '') return '—';
+      const n = Number(v);
+      if (Number.isFinite(n)) return n.toFixed(digits);
+      return String(v);
+    }
+
+    function imageUrl(path) {
+      if (!path) return '';
+      if (path.startsWith('http://') || path.startsWith('https://')) return path;
+      if (path.startsWith('/')) return API_BASE + path;
+      return API_BASE + '/' + path;
+    }
+
+    function getSpecs(candidate) {
+      if (!candidate) return {};
+      return candidate.key_specs || candidate.lens_data || {};
+    }
+
+    function getTop1(data) {
+      return data && data.result && data.result.top_k ? data.result.top_k[0] : null;
+    }
+
+    function getLayoutPath(data) {
+      const top1 = getTop1(data);
+      const specs = getSpecs(top1);
+
+      return (
+        specs.layout_image_url ||
+        (top1 && top1.lens_data && top1.lens_data.layout_image_url) ||
+        (top1 && top1.lens_data && top1.lens_data.optiland_layout_result && top1.lens_data.optiland_layout_result.image_url) ||
+        (data && data.result && data.result.layout_result && data.result.layout_result.image_url) ||
+        ''
+      );
+    }
+
+    function setText(id, value) {
+      document.getElementById(id).innerText = value === undefined || value === null ? '—' : value;
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('error');
+      if (!msg) {
+        el.style.display = 'none';
+        el.innerText = '';
+      } else {
+        el.style.display = 'block';
+        el.innerText = msg;
+      }
+    }
+
+    function setLoading(loading) {
+      const btn = document.getElementById('sendBtn');
+      btn.disabled = loading;
+      btn.innerText = loading ? '处理中...' : '发送给 Agent';
+    }
+
+    async function sendAgent(customMessage) {
+      showError('');
+      setLoading(true);
+
+      const sessionId = document.getElementById('sessionId').value.trim();
+      const message = customMessage || document.getElementById('userText').value.trim();
+      const topK = Number(document.getElementById('topK').value || 9);
+
+      if (!sessionId || !message) {
+        showError('session_id 和 message 不能为空');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const resp = await fetch(API_BASE + '/agent/chat', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            session_id: sessionId,
+            message: message,
+            top_k: topK
+          })
+        });
+
+        const data = await resp.json();
+
+        if (!resp.ok) {
+          throw new Error(data.detail || JSON.stringify(data));
+        }
+
+        render(data);
+
+      } catch (e) {
+        showError(e.message || String(e));
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    function redrawLayout() {
+      sendAgent('把当前最佳镜头画成结构图');
+    }
+
+    function optimizeFov() {
+      sendAgent('视场角还是不够，优先找更接近目标视场的结构');
+    }
+
+    function makeShorter() {
+      sendAgent('总长再短一点，结构简单一点');
+    }
+
+    function newSession() {
+      const sid = 'demo_' + Math.random().toString(16).slice(2, 10);
+      document.getElementById('sessionId').value = sid;
+      location.reload();
+    }
+
+    function render(data) {
+      const result = data.result || {};
+      const parsed = result.parsed_result || {};
+      const scale = result.scale_info || {};
+      const feasibility = result.feasibility_result || {};
+      const top1 = getTop1(data);
+      const specs = getSpecs(top1);
+      const layoutPath = getLayoutPath(data);
+      const fullImageUrl = imageUrl(layoutPath);
+
+      setText('intent', data.intent);
+      setText('sessionShow', data.session_id);
+      setText('iteration', data.design_state && data.design_state.iteration);
+      setText('feasibility', feasibility.feasibility);
+      setText('baseLens', feasibility.base_lens);
+
+      setText('scene', parsed.application_scene);
+      setText('fnum', parsed.f_number && parsed.f_number.target);
+      setText('fov', fmt(parsed.fov && parsed.fov.target, 1) + ' / ' + ((parsed.fov && parsed.fov.constraint_type) || '—'));
+      setText('aperture', parsed.aperture && parsed.aperture.target);
+      setText('derivedFocal', scale.derived_focal_length_mm);
+      setText('scaleStatus', scale.scale_status);
+
+      setText('answer', data.answer || result.recommendation || '暂无推荐说明');
+
+      setText('lensId', top1 && top1.lens_id);
+      setText('score', fmt(top1 && top1.score, 4));
+      setText('topFnum', fmt(specs.f_number, 3));
+      setText('topFov', fmt(specs.full_fov, 1) + '°');
+      setText('topTtl', fmt(specs.ttl_real_mm, 3) + ' mm');
+      setText('topRay', fmt(specs.ray_spread, 4));
+
+      const toolsEl = document.getElementById('tools');
+      toolsEl.innerHTML = '';
+      const tools = data.called_tools || [];
+      if (tools.length === 0) {
+        toolsEl.innerHTML = '<span class="empty">暂无工具调用</span>';
+      } else {
+        tools.forEach(t => {
+          const span = document.createElement('span');
+          span.className = 'tool';
+          span.innerText = t;
+          toolsEl.appendChild(span);
+        });
+      }
+
+      const risks =
+        (top1 && top1.real_constraint_evaluation && top1.real_constraint_evaluation.hard_risks) ||
+        (top1 && top1.real_constraint_evaluation && top1.real_constraint_evaluation.risks) ||
+        [];
+      setText('risks', risks.length ? risks.join('；') : '暂无明显风险');
+
+      const layoutBox = document.getElementById('layoutBox');
+      const imageUrlEl = document.getElementById('imageUrl');
+
+      if (fullImageUrl) {
+        layoutBox.innerHTML = '<img src="' + fullImageUrl + '?t=' + Date.now() + '" alt="lens layout" />';
+        imageUrlEl.innerHTML = '图片地址：<a href="' + fullImageUrl + '" target="_blank">' + fullImageUrl + '</a>';
+      } else {
+        layoutBox.innerHTML = '<div class="empty">暂无结构图</div>';
+        imageUrlEl.innerHTML = '';
+      }
+
+      const candidatesEl = document.getElementById('candidates');
+      candidatesEl.innerHTML = '';
+      const candidates = result.top_k || [];
+
+      if (candidates.length === 0) {
+        candidatesEl.innerHTML = '<div class="empty">暂无候选</div>';
+      } else {
+        candidates.forEach((item, idx) => {
+          const s = getSpecs(item);
+          const div = document.createElement('div');
+          div.className = 'candidate';
+          div.innerHTML = `
+            <div class="candidate-title">#${idx + 1} ${item.lens_id || 'unknown'}</div>
+            <div class="candidate-meta">
+              Score: ${fmt(item.score, 4)}
+              · F/${fmt(s.f_number, 2)}
+              · FOV ${fmt(s.full_fov, 1)}°
+              · TTL ${fmt(s.ttl_real_mm, 2)} mm
+              · Ray ${fmt(s.ray_spread, 4)}
+            </div>
+          `;
+          candidatesEl.appendChild(div);
+        });
+      }
+    }
+  </script>
+</body>
+</html>
